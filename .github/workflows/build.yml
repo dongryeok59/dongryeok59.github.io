@@ -1,0 +1,40 @@
+# content/ 또는 site/ 를 고치면 사이트를 다시 만들어 맨 위 폴더에 올립니다.
+# 빌드가 실패하면(예: pledges.json 따옴표 빠짐) 아무것도 바뀌지 않고 이전 사이트가 그대로 유지됩니다.
+name: Build site
+on:
+  push:
+    branches: [main]
+    paths: ['content/**', 'site/**', '.github/workflows/build.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Build
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+      - name: Publish built files to repo root
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .github ! -name site ! -name content ! -name README.md -exec rm -rf {} +
+          cp -r site/dist/. .
+          touch .nojekyll
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          git commit -m "사이트 자동 빌드 (${GITHUB_SHA::7})"
+          git pull --rebase origin main
+          git push origin HEAD:main
