@@ -3,7 +3,7 @@ import { MotionConfig, motion } from 'framer-motion'
 import { ArrowDown, ChevronDown, ChevronLeft, ChevronRight, Menu, RotateCcw, Search, Share2, X } from 'lucide-react'
 import { getChoseong } from 'es-hangul'
 import { Toaster, toast } from 'sonner'
-import { aliases, campaign, candidates, categories, roadmap, sources, type Block, type Candidate, type Category, type Pledge, type Step } from './data/site'
+import { aliases, campaign, candidates, categories, roadmap, type Block, type Candidate, type Category, type Pledge, type Step } from './data/site'
 
 const { vote } = campaign
 const listed = (c: Category) => c.pledges.filter((p) => !p.hidden)
@@ -379,8 +379,7 @@ function Statement() {
             <summary className="flex items-center justify-between gap-3 py-4">
               <span>
                 <span className="t-pledge-main block">출마소견</span>
-                <span className="t-small mt-0.5 block text-white/70">후보 등록 서류에 낸 글입니다.</span>
-                <span className="t-small block text-white/70">
+                <span className="t-small mt-0.5 block text-white/70">
                   선거 구호 <strong className="font-semibold text-white">{campaign.officialSlogan}</strong>
                 </span>
               </span>
@@ -1030,24 +1029,7 @@ function Footer() {
   return (
     <footer className="gutter border-t border-white/10 bg-[#07061f] py-10 text-white/65">
       <div className="wrap">
-        <details>
-          <summary className="t-meta flex items-center gap-2 font-semibold text-white/85">
-            자료 출처
-            <ChevronDown className="chev size-4 transition-transform" aria-hidden />
-          </summary>
-          <ul className="t-meta mt-4 grid gap-2 sm:grid-cols-2">
-            {sources.map((s) => (
-              <li key={s.url}>
-                <a href={s.url} target="_blank" rel="noreferrer" className="underline decoration-white/25 underline-offset-4 hover:text-white">
-                  {s.title}
-                </a>
-              </li>
-            ))}
-            <li>2025-1·2025-2·2026-1 학자요구안과 학교 답변, 학교 공지</li>
-            <li>동력 정책자료집, 후보 등록 서류(2026. 11. 10.)</li>
-          </ul>
-        </details>
-        <div className="mt-8 flex items-end justify-between gap-4 border-t border-white/10 pt-6">
+        <div className="flex items-end justify-between gap-4">
           <div className="t-meta">
             <p>{campaign.org}</p>
             <p className="mt-1">
