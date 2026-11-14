@@ -1,15 +1,14 @@
 @import "tailwindcss";
 
-/* 동력 — 피그마 게시물(포스터·카드뉴스·정책자료집) 미감.
-   색은 로고 3색 고정: 네이비 #0B0931 · 주황 #FD6804 · 흰색. 글꼴은 Pretendard 하나. */
+/* 동력 — 정책자료집(피그마) 미감을 그대로.
+   색은 로고 3색 고정: 네이비 #0B0931 · 주황 #FD6804 · 흰색. 글꼴은 Pretendard 하나, 강조는 자료집 손글씨.
+   규칙: 누르는 것은 알약 모양, 내용은 상자 없이 가는 선으로 구분, 주황은 손글씨·선택 상태·큰 숫자에만. */
 :root {
   --navy: #0b0931;
-  --navy-2: #2b285c;
-  --block: #1e1a6e;
+  --cover: #0e0b40;
   --orange: #fd6804;
   --orange-ink: #b94a00; /* 흰 바탕 위 작은 주황 글자 (대비 4.5:1 이상) */
   --paper: #f1f0f5;
-  --bubble: #ececf1;
   --ink: #0b0931;
   --body: #3b3a52;
   --muted: #6b6a80;
@@ -20,12 +19,9 @@
 
 @theme inline {
   --color-navy: var(--navy);
-  --color-navy-2: var(--navy-2);
-  --color-block: var(--block);
   --color-orange: var(--orange);
   --color-orange-ink: var(--orange-ink);
   --color-paper: var(--paper);
-  --color-bubble: var(--bubble);
   --color-ink: var(--ink);
   --color-body: var(--body);
   --color-muted: var(--muted);
@@ -33,7 +29,7 @@
   --font-sans: var(--font);
 }
 
-html { scroll-behavior: smooth; background: var(--navy); }
+html { scroll-behavior: smooth; background: var(--navy); -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--navy);
@@ -43,72 +39,136 @@ body {
   line-height: 1.65;
   letter-spacing: -0.02em;
   word-break: keep-all;
+  overflow-wrap: anywhere;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 h1, h2, h3 { text-wrap: balance; letter-spacing: -0.04em; }
+p, li, dd { text-wrap: pretty; }
 @layer base { img { display: block; max-width: 100%; } }
 :focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 6px; }
+[tabindex='-1']:focus-visible, .search input:focus-visible { outline: none; }
+::selection { background: var(--orange); color: var(--navy); }
 
 .gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .wrap { max-width: 1120px; margin-left: auto; margin-right: auto; }
+@media (min-width: 640px) { .gutter { padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); } }
 
-/* 포스터 질감: 피그마 메인 포스터의 오버레이 텍스처 */
-.texture { position: relative; isolation: isolate; }
-.texture::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background: var(--tex) center / cover; mix-blend-mode: overlay; opacity: .2;
-}
-
-/* 로고: 피그마 로고 SVG를 그대로 사용 */
 .logo { aspect-ratio: 842 / 862; }
+.surface { border-radius: 6px; } /* 사진·분야 표지 같은 '면' */
+.mark { width: 5px; height: 5px; background: var(--ink); }
 
-/* 카드뉴스 헤더 필 — 네이비 원 번호 + 그라데이션 필 */
-.pill { display: flex; align-items: center; }
-.pill .num {
-  flex: none; display: grid; place-items: center; border-radius: 999px; background: var(--navy);
-  color: #fff; font-weight: 900; letter-spacing: -0.06em; position: relative; z-index: 1;
-  box-shadow: 0 0 0 4px #fff;
-}
-.pill .bar {
-  flex: 1; min-width: 0; margin-left: -28px; padding-left: 40px; padding-right: 28px;
-  background: linear-gradient(90deg, var(--navy) 12%, var(--navy-2)); color: #fff;
-  border-radius: 0 999px 999px 0; font-weight: 900; letter-spacing: -0.05em; line-height: 1.15;
-}
-
-/* 출처 접기 */
 details > summary { list-style: none; cursor: pointer; }
 details > summary::-webkit-details-marker { display: none; }
 details[open] .chev { transform: rotate(180deg); }
 
+/* 누르는 것: 알약 버튼 */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 999px;
+  padding: 13px 26px; font-size: 16.5px; font-weight: 700; line-height: 1.3; cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.btn-fill { background: var(--orange); color: var(--navy); }
+.btn-fill:hover { background: #ff7b22; }
+.btn-line { border: 1px solid rgb(255 255 255 / 0.5); color: #fff; }
+.btn-line:hover { border-color: #fff; background: rgb(255 255 255 / 0.08); }
+.btn-sm { padding: 8px 16px; font-size: 15px; font-weight: 600; }
+
+/* 메뉴 */
+.nav-link { color: #fff; line-height: 1.45; }
+@media (min-width: 1024px) {
+  .nav-link { color: rgb(255 255 255 / 0.72); transition: color 0.15s; }
+  .nav-link:hover { color: #fff; }
+  .nav-link[aria-current] { color: #fff; box-shadow: inset 0 -2px 0 var(--orange); }
+}
+
 /* 목록 줄·버튼 키보드 포커스: GOV.UK처럼 배경을 칠하고 아래에 굵은 선 (색은 동력 주황·네이비) */
-.row:hover { background-color: color-mix(in srgb, currentColor 8%, transparent); }
+.row { transition: background-color 0.12s; }
+.row:hover { background-color: color-mix(in srgb, currentColor 6%, transparent); }
 .just-read { background-color: rgb(253 104 4 / 0.2) !important; transition: background-color 0.3s; }
-.row:focus-visible, .back:focus-visible, .cta:focus-visible, .menu-btn:focus-visible, .period-btn:focus-visible, .rm-link:focus-visible {
+.row:focus-visible, .back:focus-visible, .cta:focus-visible, .menu-btn:focus-visible, .period-btn:focus-visible, .rm-link:focus-visible, .nav-link:focus-visible {
   outline: 3px solid transparent; background: var(--orange); color: var(--navy); box-shadow: 0 4px 0 var(--navy);
 }
-.row:focus-visible .text-muted, .row:focus-visible .text-orange-ink { color: var(--navy); }
+.row:focus-visible :is(.text-muted, .text-body, .t-num-sm) { color: var(--navy); }
 .cta:focus-visible { box-shadow: 0 0 0 3px var(--navy), 0 0 0 6px #fff; }
+.back:hover { background: var(--paper); }
 
-/* 표지(1면)·투표 안내(22면): 짙은 남색 + 하단으로 번지는 자줏빛 */
+/* 표지(1면)·투표 안내(22면): 짙은 남색 + 하단으로 번지는 주황빛 */
 .cover-bg {
   background:
     radial-gradient(140% 62% at 50% 104%, rgb(253 100 1 / 0.32) 0%, rgb(253 100 1 / 0.13) 42%, transparent 74%),
-    #0e0b40;
+    var(--cover);
 }
+.hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 28px; padding-bottom: clamp(190px, 46vw, 320px); }
+.hero-logo { width: min(34vw, 170px); margin-top: 34px; }
+.hero .t-cover-title { margin-top: 22px; }
+.hero-hand { width: min(76vw, 380px); margin-top: 26px; }
+.hero-sub { margin-top: 12px; max-width: 26ch; }
+.hero-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 420px; margin-top: 28px; }
+.hero-cta .btn { padding-left: 12px; padding-right: 12px; }
+.vote-strip {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; max-width: 420px;
+  margin-top: 18px; padding: 12px 4px; border-block: 1px solid rgb(255 255 255 / 0.25); font-size: 15.5px; text-align: left;
+}
+.vote-strip strong { font-size: 17px; font-weight: 800; letter-spacing: 0; }
+.hero-art {
+  position: absolute; inset-inline: 0; bottom: 0; margin-inline: auto; width: 100%; max-width: 1280px; height: auto;
+  opacity: 0.5; pointer-events: none;
+  -webkit-mask-image: linear-gradient(to top, #000 34%, transparent 86%); mask-image: linear-gradient(to top, #000 34%, transparent 86%);
+}
+@media (min-width: 1024px) {
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 64px; justify-items: start; text-align: left; padding-top: 76px; padding-bottom: clamp(250px, 23vw, 350px); }
+  .hero-art { -webkit-mask-image: linear-gradient(to top, #000 16%, transparent 54%); mask-image: linear-gradient(to top, #000 16%, transparent 54%); }
+  .hero > * { grid-column: 1; }
+  .hero-logo { grid-column: 2; grid-row: 1 / span 7; align-self: center; width: clamp(220px, 21vw, 290px); margin-top: 0; }
+  .hero .t-cover-title { margin-top: 14px; }
+  .hero-hand { width: 470px; margin-top: 30px; }
+  .hero-sub { max-width: none; margin-top: 16px; }
+  .hero-cta { width: auto; grid-template-columns: auto auto; margin-top: 34px; }
+  .hero-cta .btn { padding-left: 30px; padding-right: 30px; }
+  .vote-strip { margin-top: 26px; }
+}
+
+/* 들어올 때 한 번: 제목이 떠오르고, 손글씨 슬로건이 왼쪽부터 써진다 */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes write { from { clip-path: inset(-10% 100% -10% 0); } to { clip-path: inset(-10% -2% -10% 0); } }
+@keyframes detail-in { from { opacity: 0; transform: translateY(10px); } }
+.in { animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.in-2 { animation-delay: 0.08s; }
+.in-4 { animation-delay: 0.16s; }
+.write { animation: write 0.95s cubic-bezier(0.55, 0.1, 0.3, 1) 0.3s both; }
+.detail { animation: detail-in 0.22s ease-out; }
+
 /* 분야 표지(7·12·17면): 큰 01·02·03, 짙은 남색, 가는 캠퍼스 선화 */
-.sec-cover { background: linear-gradient(200deg, rgb(253 100 1 / 0) 38%, rgb(253 100 1 / 0.19) 100%), #0e0b40; }
+.sec-cover { background: linear-gradient(200deg, rgb(253 100 1 / 0) 38%, rgb(253 100 1 / 0.19) 100%), var(--cover); }
+
+/* 공약 목차 */
+.jump + .jump { border-left: 1px solid var(--line); }
+.search { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px; border: 1px solid var(--ink); border-radius: 999px; background: #fff; }
+.search:focus-within { box-shadow: 0 0 0 3px var(--orange); }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--ink); }
+.search input::placeholder { color: var(--muted); }
+@media (min-width: 1024px) {
+  .extras { columns: 2; column-gap: 40px; border-top: 0; }
+  .extras > li { break-inside: avoid; border-top: 1px solid var(--line); border-bottom: 0; }
+}
 
 /* 월별 추진 일정 */
-.period-btn { background: #fff; border: 1px solid var(--line); color: var(--ink); }
-.period-btn[aria-pressed='true'], .period-btn.is-target { background: var(--orange); border-color: var(--orange); color: var(--navy); }
+.period-btn { position: relative; display: inline-block; border-radius: 999px; background: #fff; border: 1px solid var(--line); color: var(--ink); font-size: 15px; font-weight: 700; line-height: 1.4; text-align: center; cursor: pointer; }
+.period-btn:hover { border-color: var(--ink); }
+.period-btn[aria-pressed='true'] { border-color: var(--orange); }
+.period-btn.is-target { background: var(--orange); border-color: var(--orange); }
+.period-on { position: absolute; inset: -1px; border-radius: 999px; background: var(--orange); }
 .rm-link { font-weight: 700; color: var(--ink); text-decoration: none; border-radius: 4px; }
 .rm-link:hover { color: var(--orange-ink); }
 .rm-card.is-focus, tr.is-focus > th { box-shadow: inset 4px 0 0 var(--orange); }
+.rm-card.is-focus { padding-left: 12px; }
 .rm-table th, .rm-table td { border-bottom: 1px solid var(--line); }
 .rm-table tbody tr:first-child > * { border-top: 1px solid var(--ink); }
-.rm-rowhead { background: #fff; }
-.rm-cell { background: #fff; transition: background-color 0.2s; }
-.rm-cell.is-on { background: rgb(253 104 4 / 0.1); }
+.rm-table tbody tr:last-child > * { border-bottom-color: var(--ink); }
+.rm-rowhead, .rm-cell { background: #fff; }
+.rm-cell { transition: background-color 0.2s; }
+.rm-cell.is-on { background: #fff1e6; }
 
 /* 상세 도식: 단계 흐름 */
 .flow-step { position: relative; display: grid; grid-template-columns: 2rem 1fr; column-gap: 0.85rem; padding-bottom: 1.4rem; }
@@ -120,34 +180,44 @@ details[open] .chev { transform: rotate(180deg); }
 .cycle-arrow { grid-column: 1; justify-self: center; margin-top: 0.35rem; }
 @media (min-width: 768px) {
   .cycle { display: flex; align-items: center; gap: 0.5rem; }
-  .cycle .flow-step { display: flex; gap: 0.6rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 14px; }
+  .cycle .flow-step { display: flex; gap: 0.6rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; }
   .cycle .flow-step + .flow-step { margin-left: 2.25rem; }
   .cycle-arrow { position: absolute; right: -2rem; top: 50%; margin: -10px 0 0; transform: rotate(-90deg); }
 }
+
+/* 알림 (주소 복사) */
+.toast { width: 100%; padding: 13px 18px; border-radius: 12px; background: var(--navy); color: #fff; font-family: var(--font); font-size: 15px; font-weight: 600; text-align: center; box-shadow: 0 8px 24px rgb(11 9 49 / 0.28); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   * { transition: none !important; animation: none !important; }
 }
 
-/* 글자 역할: 분야 제목 / 공약명 / 본문 / 보조 정보 — 어느 화면에서나 같은 역할은 같은 모양 (Pretendard 한 서체) */
+/* 글자 역할: 어느 화면에서나 같은 역할은 같은 모양 (Pretendard 한 서체, 큰 숫자만 가는 굵기) */
 @layer components {
   .t-cover-org { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; color: rgb(255 255 255 / 0.9); }
-  .t-h2 { font-size: clamp(1.55rem, 5.6vw, 2.5rem); font-weight: 800; line-height: 1.3; letter-spacing: -0.035em; text-wrap: balance; }
-  .t-section { font-size: clamp(1.5rem, 6vw, 2rem); font-weight: 800; line-height: 1.2; letter-spacing: -0.045em; }
+  .t-cover-title { font-size: clamp(2.3rem, 10vw, 3.75rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.045em; }
+  .t-h2 { font-size: clamp(1.6rem, 5.8vw, 2.75rem); font-weight: 800; line-height: 1.28; letter-spacing: -0.04em; text-wrap: balance; }
+  .t-h3 { font-size: 20px; font-weight: 800; line-height: 1.4; letter-spacing: -0.035em; }
+  .t-detail { font-size: clamp(1.65rem, 6.4vw, 2.4rem); font-weight: 800; line-height: 1.3; letter-spacing: -0.04em; text-wrap: balance; }
+  .t-promise { font-size: 19px; font-weight: 700; line-height: 1.55; letter-spacing: -0.03em; }
   .t-pledge-main { font-size: 17.5px; font-weight: 700; line-height: 1.45; letter-spacing: -0.025em; }
   .t-pledge { font-size: 16.5px; font-weight: 600; line-height: 1.45; letter-spacing: -0.02em; }
-  .t-detail { font-size: clamp(1.6rem, 6.4vw, 2.25rem); font-weight: 800; line-height: 1.3; letter-spacing: -0.035em; text-wrap: balance; }
-  .t-name { font-size: clamp(1.6rem, 7vw, 2.4rem); font-weight: 900; line-height: 1.2; letter-spacing: 0.1em; color: var(--ink); }
+  .t-name { font-size: clamp(1.6rem, 7vw, 2.25rem); font-weight: 900; line-height: 1.2; letter-spacing: 0.1em; color: var(--ink); }
   .t-lead { font-size: 18px; line-height: 1.55; letter-spacing: -0.02em; }
   .t-body { font-size: 16px; line-height: 1.75; letter-spacing: -0.01em; }
   .t-small { font-size: 14.5px; line-height: 1.55; }
   .t-meta { font-size: 13.5px; line-height: 1.5; }
-  .t-kicker { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  .t-label { font-size: 14px; font-weight: 600; line-height: 1.5; letter-spacing: -0.01em; }
+  .t-year { padding-top: 1px; font-size: 13.5px; font-weight: 700; line-height: 1.6; color: var(--ink); font-variant-numeric: tabular-nums; }
   .t-wordmark { font-size: 16px; font-weight: 800; letter-spacing: 0.14em; }
-  .t-cover-title { font-size: clamp(2.3rem, 10vw, 3.75rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.045em; }
   .t-num { font-size: clamp(76px, 21vw, 124px); font-weight: 200; line-height: 0.9; letter-spacing: -0.05em; }
-  .t-num-sm { font-size: 26px; font-weight: 200; line-height: 1.1; letter-spacing: -0.04em; color: var(--orange-ink); }
+  .t-num-sm { font-size: 26px; font-weight: 200; line-height: 1.1; letter-spacing: -0.04em; color: var(--orange-ink); font-variant-numeric: tabular-nums; }
   .t-sec-name { font-size: clamp(1.75rem, 7vw, 2.3rem); font-weight: 300; line-height: 1.2; letter-spacing: -0.05em; }
-  @media (min-width: 768px) { .t-cover-org { font-size: 17px; } }
+  @media (min-width: 1024px) {
+    .t-cover-org { font-size: 17px; }
+    .t-cover-title { font-size: clamp(4rem, 6.2vw, 5.5rem); line-height: 1.08; }
+    .t-body { font-size: 17px; }
+    .t-lead { font-size: 19px; }
+  }
 }

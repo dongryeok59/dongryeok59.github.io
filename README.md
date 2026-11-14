@@ -20,8 +20,9 @@ https://dongryeok59.github.io
 | 기조문 | `statement` (`intro`, `powers`, `outro`) |
 | 출마소견 | `speech` |
 | 후보 이력 | `candidates` → `history` |
-| 투표 기간·시간·방법 | `vote` |
+| 투표 기간·시간·방법 | `vote` (`start`·`end` 날짜는 D-day 계산에 쓰이니 기간을 바꾸면 같이 바꿉니다) |
 | 공약 제목 / 한 줄 약속 | 각 공약의 `title` / `promise` |
+| 공약 찾기(검색) | 따로 고칠 것 없음. 공약의 `title`·`promise`에서 자동으로 찾습니다 |
 | 왜 필요한가요 / 어떻게 추진하나요 | `why` / `how` |
 | 도식(단계 흐름) | `blocks` → `steps` |
 | 월별 추진 일정 | `roadmap` → `rows` (`facility` 시설, `academic` 배움, `connect` 모두) |
