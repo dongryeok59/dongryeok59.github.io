@@ -1,5 +1,5 @@
 // 화면에 나오는 글은 모두 저장소 맨 위 content/pledges.json 한 파일에서 옵니다.
-// 공약명·순서·문안·도식·예산 계획·로드맵: 피그마 '발주 물품_정책 자료집' 22면(최종본) / 근거·세부 실행: 11/9 노션 최종본
+// 공약명·순서·문안·도식·예산 계획·로드맵: 피그마 '발주 물품_정책 자료집' 22면(최종본) / 자료집에 없는 글은 싣지 않음
 import data from '../../../content/pledges.json'
 
 export interface Step {
@@ -10,16 +10,15 @@ export interface Step {
 }
 export type Block =
   | { type: 'flow'; steps: Step[]; loop?: string }
-  | { type: 'branches'; branches: { id: string; label: string; title: string; steps: Step[] }[] }
+  | { type: 'branches'; branches: { id: string; label: string; steps: Step[] }[] }
   | { type: 'text'; title: string; paragraphs: string[] }
 
 export interface Pledge {
   id: string
   title: string
   core?: boolean
-  promise: string
-  why: string[]
-  how: string[]
+  /** 추가 공약의 자료집 설명 (메인공약은 도식과 계획으로 설명) */
+  promise?: string
   blocks?: Block[]
   detailTitle?: string
   /** 등록서에서 따로 적힌 공약이 자료집의 다른 공약 상세 안에서 설명될 때 */
@@ -58,7 +57,5 @@ export const campaign = data.campaign
 export const candidates = data.campaign.candidates as Candidate[]
 export const categories = data.categories as unknown as Category[]
 export const roadmap = data.roadmap as Roadmap
-export const sources = data.sources
-export const team = data.team
 // 통합된 공약의 예전 상세 주소(#/p/<옛 id>)를 합쳐진 공약으로 보냅니다
 export const aliases = data.aliases as Record<string, string>

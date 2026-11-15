@@ -4,6 +4,8 @@ https://dongryeok59.github.io
 
 ## 글자 고치기 (누구나)
 
+글의 기준은 정책자료집(22면)입니다. 자료집에 없는 글은 싣지 않습니다.
+
 화면에 나오는 글은 전부 **`content/pledges.json`** 한 파일에 있습니다.
 
 1. 이 저장소에서 `content` → `pledges.json`을 엽니다.
@@ -21,10 +23,9 @@ https://dongryeok59.github.io
 | 출마소견 | `speech` |
 | 후보 이력 | `candidates` → `history` |
 | 투표 기간·시간·방법 | `vote` (`start`·`end` 날짜는 D-day 계산에 쓰이니 기간을 바꾸면 같이 바꿉니다) |
-| 공약 제목 / 한 줄 약속 | 각 공약의 `title` / `promise` |
+| 공약 제목 / 설명 | 각 공약의 `title` / `promise` (메인공약은 설명 없이 도식과 계획으로 보여 줍니다) |
 | 공약 찾기(검색) | 따로 고칠 것 없음. 공약의 `title`·`promise`에서 자동으로 찾습니다 |
-| 왜 필요한가요 / 어떻게 추진하나요 | `why` / `how` |
-| 도식(단계 흐름) | `blocks` → `steps` |
+| 메인공약 도식·예산 계획 | `blocks` (`steps`는 도식, `paragraphs`는 계획 글) |
 | 월별 추진 일정 | `roadmap` → `rows` (`facility` 시설, `academic` 배움, `connect` 모두) |
 
 ### 지켜야 할 것

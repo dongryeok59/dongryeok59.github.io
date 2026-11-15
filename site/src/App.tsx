@@ -8,6 +8,7 @@ import { aliases, campaign, candidates, categories, roadmap, type Block, type Ca
 const { vote } = campaign
 const listed = (c: Category) => c.pledges.filter((p) => !p.hidden)
 const all = categories.flatMap(listed)
+const mains = all.filter((p) => p.core)
 const pledgeIndex = new Map(categories.flatMap((c) => c.pledges.map((p, i) => [p.id, { p, c, i }] as const)))
 const catById = new Map(categories.map((c) => [c.id, c]))
 
@@ -80,17 +81,6 @@ async function share(title: string, hash = '') {
   } catch {
     toast('주소를 복사하지 못했습니다. 주소창에서 직접 복사해 주세요')
   }
-}
-
-/** "문장 (출처)" → 본문 + 작은 출처 표기 */
-function Cite({ text }: { text: string }) {
-  const m = text.match(/^(.*?)\s*\(([^()]+)\)$/)
-  if (!m) return <>{text}</>
-  return (
-    <>
-      {m[1]} <span className="t-meta text-muted">({m[2]})</span>
-    </>
-  )
 }
 
 function openFromList(e: MouseEvent<HTMLAnchorElement>) {
@@ -400,30 +390,34 @@ function Statement() {
   )
 }
 
-/* 6면 목차 + 각 분야 표지(01·02·03). 메인공약은 번호·약속 한 줄과 함께, 추가 공약은 공약명만. 줄 전체가 상세로 가는 링크 */
-function MainRow({ p, n }: { p: Pledge; n: number }) {
+/* 6면 목차 + 각 분야 표지(01·02·03). 메인공약은 도식·계획이 있는 상세로 가는 링크, 추가 공약은 자료집처럼 공약명과 설명을 그 자리에 */
+function MainRow({ p, n, tag }: { p: Pledge; n?: number; tag?: string }) {
   return (
-    <a href={detailHash(p.id)} data-pledge={p.id} onClick={openFromList} className="row -mx-2 grid grid-cols-[2rem_1fr] px-2 py-4 text-ink">
-      <span aria-hidden className="t-num-sm">
-        {n}
-      </span>
-      <span>
-        <span className="t-pledge-main block">
-          <span className="sr-only">메인공약 {n}. </span>
-          {p.title}
+    <a href={detailHash(p.id)} data-pledge={p.id} onClick={openFromList} className="row -mx-2 flex items-center gap-3 px-2 py-4 text-ink">
+      {n && (
+        <span aria-hidden className="t-num-sm w-5 shrink-0">
+          {n}
         </span>
-        <span className="t-small mt-1 block text-body">{p.promise}</span>
+      )}
+      <span className="t-pledge-main min-w-0 flex-1">
+        <span className="sr-only">메인공약 </span>
+        {p.title}
       </span>
+      {tag && <span className="t-meta shrink-0 text-muted">{tag}</span>}
+      <ChevronRight className="size-5 shrink-0 text-muted" aria-hidden />
     </a>
   )
 }
 
-function ExtraRow({ p, tag }: { p: Pledge; tag?: string }) {
+function ExtraItem({ p, tag }: { p: Pledge; tag?: string }) {
   return (
-    <a href={detailHash(p.id)} data-pledge={p.id} onClick={openFromList} className="row -mx-2 flex items-baseline justify-between gap-3 px-2 py-3 text-ink">
-      <span className={p.core ? 't-pledge-main' : 't-pledge'}>{p.title}</span>
-      {tag && <span className="t-meta shrink-0 text-muted">{tag}</span>}
-    </a>
+    <div data-pledge={p.id} tabIndex={-1} className="-mx-2 px-2 py-4 outline-none">
+      <p className="flex items-baseline justify-between gap-3">
+        <span className="t-pledge text-ink">{p.title}</span>
+        {tag && <span className="t-meta shrink-0 text-muted">{tag}</span>}
+      </p>
+      <p className="t-body mt-1 text-body">{p.promise}</p>
+    </div>
   )
 }
 
@@ -465,11 +459,11 @@ function CategoryToc({ c }: { c: Category }) {
             </li>
           ))}
         </ol>
-        <h4 className="t-label mt-8 text-muted">추가 공약</h4>
+        <h4 className="t-label mt-8 text-muted">그 외의 추가 공약</h4>
         <ul className="extras mt-1 border-t border-ink">
           {extras.map((p) => (
             <li key={p.id} className="border-b border-line">
-              <ExtraRow p={p} />
+              <ExtraItem p={p} />
             </li>
           ))}
         </ul>
@@ -491,7 +485,7 @@ function Pledges() {
               {campaign.tocTitle}
             </h2>
             <p className="t-body mt-3 text-body">
-              메인공약 {all.filter((p) => p.core).length}개와 추가 공약 {all.filter((p) => !p.core).length}개를 담았습니다. 공약명을 누르면 자세히 볼 수 있습니다.
+              메인공약 {all.filter((p) => p.core).length}개와 추가 공약 {all.filter((p) => !p.core).length}개를 담았습니다. 메인공약을 누르면 추진 방법과 계획을 볼 수 있습니다.
             </p>
           </div>
           <div className="mt-6 lg:mt-0">
@@ -545,7 +539,7 @@ function Pledges() {
                 <ul className="mt-1 border-t border-ink">
                   {found.map(({ p, c }) => (
                     <li key={p.id} className="border-b border-line">
-                      <ExtraRow p={p} tag={c.short} />
+                      {p.core ? <MainRow p={p} tag={c.short} /> : <ExtraItem p={p} tag={c.short} />}
                     </li>
                   ))}
                 </ul>
@@ -746,43 +740,27 @@ function Flow({ steps, loop }: { steps: Step[]; loop?: string }) {
   )
 }
 
-function Branches({ branches, focus }: { branches: Extract<Block, { type: 'branches' }>['branches']; focus?: string }) {
-  const jump = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault()
-    const el = document.getElementById(`branch-${id}`)
-    el?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-    if (el) flash(el)
-  }
+function Branches({ branches }: { branches: Extract<Block, { type: 'branches' }>['branches'] }) {
   return (
-    <div className="mt-5">
-      <nav aria-label="두 갈래" className="flex gap-2">
-        {branches.map((b) => (
-          <a key={b.id} href={`#branch-${b.id}`} onClick={(e) => jump(e, b.id)} className={`period-btn px-4 py-2 ${focus === b.id ? 'is-target' : ''}`}>
+    <div className="mt-2 grid gap-8 md:grid-cols-2">
+      {branches.map((b, i) => (
+        <section key={b.id} id={`branch-${b.id}`} aria-labelledby={`branch-${b.id}-t`} className={`scroll-mt-20 ${i > 0 ? 'max-md:border-t max-md:border-line max-md:pt-8' : ''}`}>
+          <h3 id={`branch-${b.id}-t`} className="t-h3">
             {b.label}
-          </a>
-        ))}
-      </nav>
-      <div className="mt-5 grid gap-8 md:grid-cols-2">
-        {branches.map((b) => (
-          <section key={b.id} id={`branch-${b.id}`} aria-labelledby={`branch-${b.id}-t`} className="scroll-mt-20 border-t-2 border-ink pt-4">
-            <p className="t-label text-muted">{b.label}</p>
-            <h4 id={`branch-${b.id}-t`} className="t-pledge-main mt-0.5">
-              {b.title}
-            </h4>
-            <ol className="mt-4 space-y-4">
-              {b.steps.map((s, k) => (
-                <li key={k} className="grid grid-cols-[auto_1fr] gap-3">
-                  {s.tag ? <span className="flow-tag mt-0.5 self-start whitespace-nowrap">{s.tag}</span> : <span aria-hidden className="mark mt-[0.7em]" />}
-                  <div>
-                    {s.title && <p className="font-bold text-ink">{s.title}</p>}
-                    <p className="t-body text-body">{s.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </section>
-        ))}
-      </div>
+          </h3>
+          <ol className="mt-4 space-y-4">
+            {b.steps.map((s, k) => (
+              <li key={k} className="grid grid-cols-[auto_1fr] gap-3">
+                {s.tag ? <span className="flow-tag mt-0.5 self-start whitespace-nowrap">{s.tag}</span> : <span aria-hidden className="mark mt-[0.7em]" />}
+                <div>
+                  {s.title && <p className="font-bold text-ink">{s.title}</p>}
+                  <p className="t-body text-body">{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
     </div>
   )
 }
@@ -791,10 +769,9 @@ function PledgeDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const entry = pledgeIndex.get(id)!
   const focus = entry.p.focus
   const { p, c } = entry.p.ref ? pledgeIndex.get(entry.p.ref)! : entry
-  const order = c.pledges.filter((x) => !x.ref)
-  const at = order.findIndex((x) => x.id === p.id)
-  const prev = order[at - 1]
-  const next = order[at + 1]
+  const at = p.core ? mains.findIndex((x) => x.id === p.id) : -1
+  const prev = at > 0 ? mains[at - 1] : undefined
+  const next = at >= 0 ? mains[at + 1] : undefined
   const [from] = useState(() => (nav.fromList ? nav.from : 'list'))
   const heading = useRef<HTMLHeadingElement>(null)
   const dialog = useRef<HTMLDivElement>(null)
@@ -852,42 +829,13 @@ function PledgeDetail({ id, onClose }: { id: string; onClose: () => void }) {
           <h2 id="detail-title" ref={heading} tabIndex={-1} className="t-detail mt-2.5 outline-none">
             {title}
           </h2>
-          <p className="t-promise mt-5 border-b border-ink pb-7">{p.promise}</p>
-          {p.why.length > 0 && (
-            <section className="mt-9">
-              <h3 className="t-h3">왜 필요한가요?</h3>
-              <ul className="mt-3 space-y-3">
-                {p.why.map((w, k) => (
-                  <li key={k} className="t-body grid grid-cols-[auto_1fr] gap-3 text-body">
-                    <span aria-hidden className="mark mt-[0.75em]" />
-                    <span>
-                      <Cite text={w} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
+          {p.promise && <p className="t-promise mt-5">{p.promise}</p>}
+          <div className="mt-7 border-t border-ink" />
+          {diagrams.map((b, k) => (
+            <section key={k} className="mt-8">
+              {b.type === 'flow' ? <Flow steps={b.steps} loop={b.loop} /> : b.type === 'branches' ? <Branches branches={b.branches} /> : null}
             </section>
-          )}
-          {(diagrams.length > 0 || p.how.length > 0) && (
-            <section className="mt-11">
-              <h3 className="t-h3">어떻게 추진하나요?</h3>
-              {diagrams.map((b, k) =>
-                b.type === 'flow' ? <Flow key={k} steps={b.steps} loop={b.loop} /> : b.type === 'branches' ? <Branches key={k} branches={b.branches} focus={focus} /> : null,
-              )}
-              {p.how.length > 1 ? (
-                <ol className="mt-3 space-y-3">
-                  {p.how.map((h, k) => (
-                    <li key={k} className="t-body grid grid-cols-[1.75rem_1fr] text-body">
-                      <span className="font-bold text-ink tabular-nums">{k + 1}.</span>
-                      <span>{h}</span>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                p.how[0] && <p className="t-body mt-3 text-body">{p.how[0]}</p>
-              )}
-            </section>
-          )}
+          ))}
           {texts.map((t, k) => (
             <section key={k} className="mt-11">
               {t.title && <h3 className="t-h3">{t.title}</h3>}
@@ -914,12 +862,12 @@ function PledgeDetail({ id, onClose }: { id: string; onClose: () => void }) {
             </section>
           )}
           {(prev || next) && (
-            <nav aria-label="같은 분야의 다른 공약" className="mt-16 grid border-t border-ink sm:grid-cols-2">
+            <nav aria-label="다른 메인공약" className="mt-16 grid border-t border-ink sm:grid-cols-2">
               {prev ? (
                 <a href={detailHash(prev.id)} onClick={(e) => go(e, prev.id)} className="row -mx-2 border-b border-line px-2 py-4 sm:border-b-0">
                   <span className="t-meta flex items-center gap-0.5 text-muted">
                     <ChevronLeft className="-ml-1 size-4" aria-hidden />
-                    이전 공약
+                    이전 메인공약
                   </span>
                   <span className="t-pledge mt-0.5 block">{prev.title}</span>
                 </a>
@@ -929,7 +877,7 @@ function PledgeDetail({ id, onClose }: { id: string; onClose: () => void }) {
               {next && (
                 <a href={detailHash(next.id)} onClick={(e) => go(e, next.id)} className="row -mx-2 px-2 py-4 sm:text-right">
                   <span className="t-meta flex items-center gap-0.5 text-muted sm:justify-end">
-                    다음 공약
+                    다음 메인공약
                     <ChevronRight className="-mr-1 size-4" aria-hidden />
                   </span>
                   <span className="t-pledge mt-0.5 block">{next.title}</span>
