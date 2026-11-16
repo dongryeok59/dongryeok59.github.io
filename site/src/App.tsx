@@ -45,6 +45,8 @@ const dday = (() => {
   if (today <= vote.end) return { mark: left === 0 ? 'D-DAY' : '투표 중', text: '지금 투표 기간입니다' }
   return null
 })()
+/* 표지 첫 줄은 '…총학생회 선거'를 크게, 둘째 줄에 '선거운동본부 동력' */
+const orgRest = campaign.org.startsWith(campaign.election) ? '선거' + campaign.org.slice(campaign.election.length) : campaign.org
 const shortPeriod = vote.period.replace(/^\d{4}\.\s*/, '')
 
 /* 공약 상세는 #/p/<id> 해시 화면. 목록·일정은 그대로 둔 채 위에 덮어서, 돌아오면 보던 자리와 선택한 시기가 그대로 남는다. */
@@ -173,7 +175,10 @@ function Hero() {
     <section id="top" aria-labelledby="cover-title" className="cover-bg relative overflow-hidden">
       <div className="gutter relative z-10">
         <div className="hero wrap">
-          <p className="t-cover-org in in-1">{campaign.org}</p>
+          <p className="in in-1">
+            <span className="t-cover-election block">{campaign.election}</span>
+            <span className="t-cover-org mt-1 block">{orgRest}</span>
+          </p>
           <img src="figma/logo-white.svg" alt="" fetchPriority="high" className="hero-logo logo in in-1" />
           <h1 id="cover-title" className="t-cover-title in in-2">
             {campaign.bookTitle}
